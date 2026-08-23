@@ -11,11 +11,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="canonical" href="https://fire.jednoduse.cz">
     <script>
+        // Nastavení barevného motivu proběhne co nejdříve, aby stránka neproblikla světlou variantou.
+        // Uložená volba uživatele má přednost před nastavením operačního systému.
+        (function() {
+            let saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) { /* localStorage nemusí být dostupné */ }
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
         // Překlady pro podporu více jazyků
         const translations = {
             cs: {
                 title: "F.I.R.E. Kalkulačka Úspor Na Důchod",
                 copyright: "©SVP 2025,2026",
+                themeToDark: "Přepnout na tmavý režim",
+                themeToLight: "Přepnout na světlý režim",
                 fireInfoTitle: "Co je F.I.R.E.?",
                 fireInfoContent: '<strong>F</strong>inancial <strong>I</strong>ndependence <strong>R</strong>etire <strong>E</strong>arly (finanční nezávislost a předčasný důchod)<br><br>Finanční strategie zaměřená na dosažení finanční nezávislosti a možnosti předčasného odchodu do důchodu prostřednictvím agresivního spoření a investování.<br /><br />Tato kalkulačka umožňuje spočítat, kolik musíte naspořit pro finanční nezávislost a předčasný důchod, nebo jakou částku můžete měsíčně čerpat z naspořených prostředků. Výpočty zohledňují indexaci čerpání, zhodnocení investic i státní důchod.',
                 calculationModeLabel: "Zvolte režim výpočtu:",
@@ -57,6 +70,8 @@
             en: {
                 title: "F.I.R.E. Retirement Savings Calculator",
                 copyright: "©SVP 2025,2026",
+                themeToDark: "Switch to dark mode",
+                themeToLight: "Switch to light mode",
                 fireInfoTitle: "What is F.I.R.E.?",
                 fireInfoContent: '<strong>F</strong>inancial <strong>I</strong>ndependence <strong>R</strong>etire <strong>E</strong>arly<br><br>A financial strategy focused on achieving financial independence and the possibility of early retirement through aggressive saving and investing.<br /><br />This calculator allows you to calculate how much you need to save for financial independence and early retirement, or how much you can withdraw monthly from your savings. The calculations take into account withdrawal indexation, investment returns, and state pension.',
                 calculationModeLabel: "Choose calculation mode:",
@@ -180,6 +195,9 @@
             document.getElementById('returnsHeader').textContent = t('returnsHeader');
             
             // Aktualizace hlavního výsledku podle režimu
+            // Popisek přepínače motivu se mění spolu s jazykem
+            if (typeof updateThemeButton === 'function') updateThemeButton();
+
             updateResultLabel();
         }
 
@@ -202,13 +220,74 @@
         transform: scale(0.97);
         transition: box-shadow 0.1s, background-color 0.1s, transform 0.1s;
     }
+
+    /* ===== Tmavý režim =====
+       Stránka staví na hotových Tailwind třídách, proto se barvy přepisují
+       cíleně pod třídou .dark na elementu <html>. */
+
+    /* Podkladový přechod a základní barva textu */
+    html.dark body {
+        background-image: linear-gradient(to bottom right, #0f172a, #1e1b4b);
+        color: #e2e8f0;
+    }
+
+    /* Karty, panely a hlavička tabulky */
+    html.dark .bg-white { background-color: #1e293b !important; }
+    html.dark .bg-gray-50 { background-color: #172033 !important; }
+    /* Zvýrazněný řádek roku odchodu do důchodu */
+    html.dark .bg-indigo-50 { background-color: #312e81 !important; }
+
+    /* Texty */
+    html.dark .text-gray-500 { color: #94a3b8 !important; }
+    html.dark .text-gray-600 { color: #cbd5e1 !important; }
+    html.dark .text-gray-700 { color: #cbd5e1 !important; }
+    html.dark .text-gray-800 { color: #e2e8f0 !important; }
+    html.dark .text-indigo-600,
+    html.dark .text-indigo-700,
+    html.dark .text-indigo-800,
+    html.dark .text-indigo-900 { color: #a5b4fc !important; }
+    /* Záporný zůstatek úspor v tabulce */
+    html.dark .text-red-600 { color: #f87171 !important; }
+
+    /* Okraje */
+    html.dark .border-gray-200 { border-color: #334155 !important; }
+    html.dark .border-gray-300 { border-color: #475569 !important; }
+
+    /* Formulářová pole */
+    html.dark input[type="number"],
+    html.dark input[type="text"] {
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+    /* Zesvětlení ovládacích prvků, které kreslí prohlížeč */
+    html.dark input[type="radio"],
+    html.dark input[type="checkbox"] { accent-color: #818cf8; }
+
+    /* Stavy myši nad tlačítky přepínačů */
+    html.dark .hover\:bg-gray-100:hover { background-color: #334155 !important; }
+    html.dark .hover\:text-indigo-800:hover { color: #c7d2fe !important; }
+
+    /* Barevné boxy s milníky */
+    html.dark .bg-blue-100 { background-color: #1e3a5f !important; }
+    html.dark .border-blue-300 { border-color: #2563eb !important; }
+    html.dark .bg-indigo-100 { background-color: #312e81 !important; }
+    html.dark .border-indigo-300 { border-color: #6366f1 !important; }
+    html.dark .bg-red-100 { background-color: #4c1d1d !important; }
+    html.dark .border-red-300 { border-color: #ef4444 !important; }
+    html.dark .bg-green-100 { background-color: #14432a !important; }
+    html.dark .border-green-300 { border-color: #22c55e !important; }
     </style>
     <div class="container mx-auto px-4 py-8 max-w-5xl">
-        <!-- Přepínač jazyků -->
-        <div class="flex justify-end mb-4">
+        <!-- Přepínač jazyků a barevného motivu -->
+        <div class="flex justify-end items-center gap-2 mb-4">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
                 <button id="langCs" class="px-3 py-1 rounded text-sm font-medium transition-colors duration-200 bg-indigo-600 text-white" onclick="switchLanguage('cs')">CZ</button>
                 <button id="langEn" class="px-3 py-1 rounded text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100" onclick="switchLanguage('en')">EN</button>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                <button id="themeToggle" type="button" class="px-3 py-1 rounded text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100" title="Přepnout na tmavý režim" aria-label="Přepnout na tmavý režim">
+                    <i id="themeIcon" class="fas fa-moon"></i>
+                </button>
             </div>
         </div>
         
@@ -718,6 +797,53 @@
 
         document.getElementById('calculateBtn').addEventListener('click', calculate);
 
+        // ===== Přepínání světlého a tmavého režimu =====
+
+        // Zjistí, zda je právě aktivní tmavý režim
+        function isDarkMode() {
+            return document.documentElement.classList.contains('dark');
+        }
+
+        // Nastaví motiv a překreslí grafy.
+        // persist = true znamená ruční volbu uživatele, která se uloží do localStorage
+        function applyTheme(dark, persist) {
+            document.documentElement.classList.toggle('dark', dark);
+            if (persist) {
+                try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) { /* localStorage nemusí být dostupné */ }
+            }
+            updateThemeButton();
+            // Grafy mají barvy vypálené při vykreslení, proto je po přepnutí kreslíme znovu
+            if (window.lastYearlyData) {
+                createCharts(window.lastYearlyData, window.lastRetirementAge);
+            }
+        }
+
+        // Sjednotí ikonu a popisek tlačítka s aktuálním motivem a jazykem
+        function updateThemeButton() {
+            const btn = document.getElementById('themeToggle');
+            const icon = document.getElementById('themeIcon');
+            if (!btn || !icon) return;
+            const dark = isDarkMode();
+            // Ikona ukazuje, co se stane po kliknutí: měsíc = zapnout tmavý, slunce = zapnout světlý
+            icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+            const popis = dark ? t('themeToLight') : t('themeToDark');
+            btn.title = popis;
+            btn.setAttribute('aria-label', popis);
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            applyTheme(!isDarkMode(), true);
+        });
+
+        // Změna nastavení v operačním systému se projeví jen do doby, než si uživatel zvolí ručně
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                let saved = null;
+                try { saved = localStorage.getItem('theme'); } catch (err) { /* localStorage nemusí být dostupné */ }
+                if (!saved) applyTheme(e.matches, false);
+            });
+        }
+
         function calculate() {
             const isSavings = document.getElementById('modeSavings').checked;
             const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
@@ -932,6 +1058,12 @@
         }
         
         function createCharts(yearlyData, retirementAge) {
+            // Popisky a mřížka grafů se musí přizpůsobit motivu – Chart.js si barvy
+            // převezme při vykreslení, proto je nastavíme před vytvořením grafů
+            const darkMode = document.documentElement.classList.contains('dark');
+            Chart.defaults.color = darkMode ? '#cbd5e1' : '#666666';
+            Chart.defaults.borderColor = darkMode ? 'rgba(148, 163, 184, 0.25)' : 'rgba(0, 0, 0, 0.1)';
+
             // Graf vývoje úspor
             createSavingsChart(yearlyData, retirementAge);
             
