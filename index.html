@@ -1,0 +1,1327 @@
+<?php
+// zde může být PHP kód, pokud potřebujete.
+?>
+
+<html lang="cs"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE kalkulačka úspor na důchod</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="canonical" href="https://fire.jednoduse.cz">
+    <script>
+        // Překlady pro podporu více jazyků
+        const translations = {
+            cs: {
+                title: "F.I.R.E. Kalkulačka Úspor Na Důchod",
+                copyright: "©SVP 2025,2026",
+                fireInfoTitle: "Co je F.I.R.E.?",
+                fireInfoContent: '<strong>F</strong>inancial <strong>I</strong>ndependence <strong>R</strong>etire <strong>E</strong>arly (finanční nezávislost a předčasný důchod)<br><br>Finanční strategie zaměřená na dosažení finanční nezávislosti a možnosti předčasného odchodu do důchodu prostřednictvím agresivního spoření a investování.<br /><br />Tato kalkulačka umožňuje spočítat, kolik musíte naspořit pro finanční nezávislost a předčasný důchod, nebo jakou částku můžete měsíčně čerpat z naspořených prostředků. Výpočty zohledňují indexaci čerpání, zhodnocení investic i státní důchod.',
+                calculationModeLabel: "Zvolte režim výpočtu:",
+                modeSavingsLabel: "Chci spočítat potřebné úspory",
+                modeWithdrawalLabel: "Chci spočítat možné měsíční čerpání (včetně důchodu)",
+                inflationRateLabel: "Míra indexace čerpání (%, průměrná inflace v ČR 2000-2025 3,3%)",
+                returnRateLabel: "Míra zhodnocení úspor (%, inflace ČR 2000-2025 3,3%)",
+                currentAgeLabel: "Aktuální věk",
+                retirementAgeLabel: "Věk odchodu do důchodu",
+                monthlyWithdrawalLabel: "Měsíční čerpání celkem (Kč, aktuální hodnota)",
+                initialSavingsLabel: "Výše úspor nyní (Kč)",
+                monthlyPensionLabel: "Měsíční důchod (Kč, aktuální hodnota)",
+                pensionIndexationLabel: "Roční indexace důchodu (%, průměr v ČR 2000-2024 4,9%)",
+                usePercentWithdrawalLabel: "Čerpat stejné % z portfolia každý rok",
+                annualWithdrawalPercentLabel: "Roční čerpání z portfolia (%)",
+                endAgeLabel: "Věk ukončení čerpání",
+                calculateBtnText: "Spočítat",
+                resultsTitle: "Výsledky",
+                resultMainLabelSavings: "Potřebné úspory nyní",
+                resultMainLabelWithdrawal: "Možné měsíční čerpání (aktuální hodnota, včetně důchodu)",
+                withdrawalPeriodLabel: "Celková doba čerpání",
+                savingsEvolutionTitle: "Vývoj úspor v čase",
+                incomeExpensesTitle: "Roční čerpání a zhodnocení",
+                keyMilestonesTitle: "Klíčové milníky",
+                detailedOverviewTitle: "Detailní přehled po letech",
+                ageHeader: "Věk",
+                yearHeader: "Rok",
+                savingsHeader: "Stav úspor (Kč)",
+                withdrawalHeader: "Roční čerpání (Kč)",
+                returnsHeader: "Zhodnocení (Kč)",
+                savingsChart: "Stav úspor (Kč)",
+                withdrawalChart: "Roční čerpání (Kč)",
+                returnsChart: "Roční zhodnocení (Kč)",
+                retirementAnnotation: "Důchod",
+                years: "let",
+                initialSavingsText: "Počáteční úspory",
+                retirementSavingsText: "Úspory na začátku roku odchodu do důchodu",
+                savingsDepletedText: "Úspory vyčerpány",
+                finalSavingsText: "Konečné úspory (na konci období)"
+            },
+            en: {
+                title: "F.I.R.E. Retirement Savings Calculator",
+                copyright: "©SVP 2025,2026",
+                fireInfoTitle: "What is F.I.R.E.?",
+                fireInfoContent: '<strong>F</strong>inancial <strong>I</strong>ndependence <strong>R</strong>etire <strong>E</strong>arly<br><br>A financial strategy focused on achieving financial independence and the possibility of early retirement through aggressive saving and investing.<br /><br />This calculator allows you to calculate how much you need to save for financial independence and early retirement, or how much you can withdraw monthly from your savings. The calculations take into account withdrawal indexation, investment returns, and state pension.',
+                calculationModeLabel: "Choose calculation mode:",
+                modeSavingsLabel: "I want to calculate required savings",
+                modeWithdrawalLabel: "I want to calculate possible monthly withdrawal (including pension)",
+                inflationRateLabel: "Withdrawal indexation rate (%, average inflation in CZ 2000-2025 3.3%)",
+                returnRateLabel: "Savings return rate (%, inflation ČR 2000-2025 3,3%)",
+                currentAgeLabel: "Current age",
+                retirementAgeLabel: "Retirement age",
+                monthlyWithdrawalLabel: "Total monthly withdrawal (CZK, current value)",
+                initialSavingsLabel: "Current savings amount (CZK)",
+                monthlyPensionLabel: "Monthly pension (CZK, current value)",
+                pensionIndexationLabel: "Annual pension indexation (%, average in CZ 2000-2024 4.9%)",
+                usePercentWithdrawalLabel: "Withdraw same % of portfolio each year",
+                annualWithdrawalPercentLabel: "Annual withdrawal (% of portfolio)",
+                endAgeLabel: "End of withdrawal age",
+                calculateBtnText: "Calculate",
+                resultsTitle: "Results",
+                resultMainLabelSavings: "Required Savings Now",
+                resultMainLabelWithdrawal: "Maximum Monthly Withdrawal (current value, including pension)",
+                withdrawalPeriodLabel: "Total Withdrawal Period",
+                savingsEvolutionTitle: "Savings Evolution Over Time",
+                incomeExpensesTitle: "Annual Withdrawal and Returns",
+                keyMilestonesTitle: "Key Milestones",
+                detailedOverviewTitle: "Detailed Yearly Overview",
+                ageHeader: "Age",
+                yearHeader: "Year",
+                savingsHeader: "Savings Amount (CZK)",
+                withdrawalHeader: "Annual Withdrawal (CZK)",
+                returnsHeader: "Returns (CZK)",
+                savingsChart: "Savings Amount (CZK)",
+                withdrawalChart: "Annual Withdrawal (CZK)",
+                returnsChart: "Annual Returns (CZK)",
+                retirementAnnotation: "Retirement",
+                years: "years",
+                initialSavingsText: "Initial Savings",
+                retirementSavingsText: "Savings at Beginning of Retirement Year",
+                savingsDepletedText: "Savings Depleted",
+                finalSavingsText: "Final Savings (at end of period)"
+            }
+        };
+
+        // Detekce jazyka prohlížeče
+        function detectLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang.startsWith('cs')) {
+                return 'cs';
+            }
+            return 'en'; // Výchozí angličtina
+        }
+
+        // Aktuální jazyk
+        let currentLanguage = detectLanguage();
+
+        // Funkce pro získání překladu
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        // Funkce pro přepnutí jazyka
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            updateLanguageButtons();
+            updateTexts();
+            // Přepočítat grafy s novými popisky
+            if (window.lastYearlyData) {
+                setTimeout(() => {
+                    createCharts(window.lastYearlyData, window.lastRetirementAge);
+                }, 50);
+            }
+        }
+
+        // Aktualizace tlačítek jazyka
+        function updateLanguageButtons() {
+            const csBtn = document.getElementById('langCs');
+            const enBtn = document.getElementById('langEn');
+            
+            if (currentLanguage === 'cs') {
+                csBtn.className = 'px-3 py-1 rounded text-sm font-medium transition-colors duration-200 bg-indigo-600 text-white';
+                enBtn.className = 'px-3 py-1 rounded text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100';
+            } else {
+                enBtn.className = 'px-3 py-1 rounded text-sm font-medium transition-colors duration-200 bg-indigo-600 text-white';
+                csBtn.className = 'px-3 py-1 rounded text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100';
+            }
+        }
+
+        // Funkce pro aktualizaci všech textů na stránce
+        function updateTexts() {
+            // Základní texty
+            document.getElementById('mainTitle').textContent = t('title');
+            document.getElementById('copyrightText').textContent = t('copyright');
+            document.getElementById('fireInfoTitle').textContent = t('fireInfoTitle');
+            document.getElementById('fireInfoContent').innerHTML = t('fireInfoContent');
+            
+            // Formulářové prvky
+            document.getElementById('calculationModeLabel').textContent = t('calculationModeLabel');
+            document.getElementById('modeSavingsLabel').textContent = t('modeSavingsLabel');
+            document.getElementById('modeWithdrawalLabel').textContent = t('modeWithdrawalLabel');
+            document.getElementById('inflationRateLabel').textContent = t('inflationRateLabel');
+            document.getElementById('returnRateLabel').textContent = t('returnRateLabel');
+            document.getElementById('currentAgeLabel').textContent = t('currentAgeLabel');
+            document.getElementById('retirementAgeLabel').textContent = t('retirementAgeLabel');
+            document.getElementById('monthlyWithdrawalLabel').textContent = t('monthlyWithdrawalLabel');
+            document.getElementById('usePercentWithdrawalLabel').textContent = t('usePercentWithdrawalLabel');
+            document.getElementById('annualWithdrawalPercentLabel').textContent = t('annualWithdrawalPercentLabel');
+            document.getElementById('initialSavingsLabel').textContent = t('initialSavingsLabel');
+            document.getElementById('monthlyPensionLabel').textContent = t('monthlyPensionLabel');
+            document.getElementById('pensionIndexationLabel').textContent = t('pensionIndexationLabel');
+            document.getElementById('endAgeLabel').textContent = t('endAgeLabel');
+            document.getElementById('calculateBtnText').textContent = t('calculateBtnText');
+            
+            // Výsledková sekce
+            document.getElementById('resultsTitle').textContent = t('resultsTitle');
+            document.getElementById('withdrawalPeriodLabel').textContent = t('withdrawalPeriodLabel');
+            document.getElementById('savingsEvolutionTitle').textContent = t('savingsEvolutionTitle');
+            document.getElementById('incomeExpensesTitle').textContent = t('incomeExpensesTitle');
+            document.getElementById('keyMilestonesTitle').textContent = t('keyMilestonesTitle');
+            document.getElementById('detailedOverviewTitle').textContent = t('detailedOverviewTitle');
+            
+            // Tabulkové hlavičky
+            document.getElementById('ageHeader').textContent = t('ageHeader');
+            document.getElementById('yearHeader').textContent = t('yearHeader');
+            document.getElementById('savingsHeader').textContent = t('savingsHeader');
+            document.getElementById('withdrawalHeader').textContent = t('withdrawalHeader');
+            document.getElementById('returnsHeader').textContent = t('returnsHeader');
+            
+            // Aktualizace hlavního výsledku podle režimu
+            updateResultLabel();
+        }
+
+        // Aktualizace popisku hlavního výsledku podle režimu
+        function updateResultLabel() {
+            const isSavings = document.getElementById('modeSavings').checked;
+            const label = document.getElementById('resultMainLabel');
+            if (label) {
+                label.textContent = isSavings ? t('resultMainLabelSavings') : t('resultMainLabelWithdrawal');
+            }
+        }
+    </script>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.block{display:block}.grid{display:grid}.h-80{height:20rem}.min-h-screen{min-height:100vh}.w-full{width:100%}.min-w-full{min-width:100%}.max-w-5xl{max-width:64rem}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-x-auto{overflow-x:auto}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235 / var(--tw-border-opacity, 1))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-indigo-50{--tw-bg-opacity:1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-blue-50{--tw-gradient-from:#eff6ff var(--tw-gradient-from-position);--tw-gradient-to:rgb(239 246 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-indigo-100{--tw-gradient-to:#e0e7ff var(--tw-gradient-to-position)}.p-4{padding:1rem}.p-6{padding:1.5rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-indigo-800{--tw-text-opacity:1;color:rgb(55 48 163 / var(--tw-text-opacity, 1))}.text-indigo-900{--tw-text-opacity:1;color:rgb(49 46 129 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.ease-in-out{transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1)}.hover\:scale-105:hover{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.focus\:ring-indigo-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(99 102 241 / var(--tw-ring-opacity, 1))}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}</style></head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <style>
+    /* Styl pro zvýraznění stisku tlačítka calculateBtn */
+    #calculateBtn.active-calculate {
+        box-shadow: 0 0 0 4px rgba(79,70,229,0.25), 0 2px 8px rgba(0,0,0,0.10);
+        background-color: #4338ca !important;
+        transform: scale(0.97);
+        transition: box-shadow 0.1s, background-color 0.1s, transform 0.1s;
+    }
+    </style>
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Přepínač jazyků -->
+        <div class="flex justify-end mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                <button id="langCs" class="px-3 py-1 rounded text-sm font-medium transition-colors duration-200 bg-indigo-600 text-white" onclick="switchLanguage('cs')">CZ</button>
+                <button id="langEn" class="px-3 py-1 rounded text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-100" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-center mb-1">
+            <h1 class="text-3xl font-bold text-center text-indigo-800" id="mainTitle">F.I.R.E. kalkulačka úspor na důchod</h1>
+            <div class="relative ml-2 group">
+                <i class="fas fa-info-circle text-indigo-600 hover:text-indigo-800 cursor-help text-lg"></i>
+                <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block w-80 bg-gray-800 text-white text-sm rounded-lg p-3 z-50">
+                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-800"></div>
+                    <div class="text-center font-semibold mb-1" id="fireInfoTitle">Co je F.I.R.E.?</div>
+                    <div class="text-xs leading-relaxed" id="fireInfoContent">
+                        <strong>F</strong>inancial <strong>I</strong>ndependence <strong>R</strong>etire <strong>E</strong>arly (finanční nezávislost a předčasný důchod)
+                        <br><br>
+                        Finanční strategie zaměřená na dosažení finanční nezávislosti a možnosti předčasného odchodu do důchodu prostřednictvím agresivního spoření a investování.<br /><br />
+                        Tato kalkulačka umožňuje spočítat, kolik musíte naspořit pro finanční nezávislost a předčasný důchod, nebo jakou částku můžete měsíčně čerpat z naspořených prostředků. Výpočty zohledňují indexaci čerpání, zhodnocení investic i státní důchod.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h1 class="text-1xl font-bold text-center text-indigo-800 mb-8" id="copyrightText"></h1>        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="mb-6 flex flex-col md:flex-row gap-4 items-center">
+                <label class="font-medium text-gray-700 mb-2" id="calculationModeLabel">Zvolte režim výpočtu:</label>
+                <div class="flex flex-col gap-2 w-full md:w-auto">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="calcMode" id="modeWithdrawal" value="withdrawal" checked class="form-radio text-indigo-600">
+                        <span class="ml-2" id="modeWithdrawalLabel">Chci spočítat možné měsíční čerpání</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="calcMode" id="modeSavings" value="savings" class="form-radio text-indigo-600">
+                        <span class="ml-2" id="modeSavingsLabel">Chci spočítat potřebné úspory</span>
+                    </label>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="returnRateLabel">Míra zhodnocení úspor (%)</label>
+                        <input type="number" id="returnRate" value="6.13" step="0.1" min="0" max="20" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="currentAgeLabel">Aktuální věk</label>
+                        <input type="number" id="currentAge" value="53" step="1" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="retirementAgeLabel">Věk odchodu do důchodu</label>
+                        <input type="number" id="retirementAge" value="65" step="1" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <!-- Čerpat % z portfolia + procento -->
+                    <div class="mt-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="usePercentWithdrawal" class="form-checkbox text-indigo-600">
+                            <span class="ml-2" id="usePercentWithdrawalLabel">Čerpat % z portfolia každý rok</span>
+                        </label>
+                        <div class="mt-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" id="annualWithdrawalPercentLabel">Roční čerpání z portfolia (%)</label>
+                            <input type="number" id="annualWithdrawalPercent" value="4.7" step="0.1" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="inflationRateLabel">Míra indexace čerpání (%, průměrná inflace v ČR 3,3%)</label>
+                        <input type="number" id="inflationRate" value="4.9" step="0.1" min="0" max="20" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <div id="inputInitialSavings">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" id="initialSavingsLabel">Výše úspor nyní (Kč)</label>
+                            <input type="number" id="initialSavings" value="9400000" step="10000" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div id="inputMonthlyWithdrawal" style="display:none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" id="monthlyWithdrawalLabel">Měsíční čerpání celkem (Kč, aktuální hodnota)</label>
+                            <input type="number" id="monthlyWithdrawalBeforeRetirement" value="43000" step="1000" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="monthlyPensionLabel">Měsíční důchod (Kč, aktuální hodnota)</label>
+                        <input type="number" id="monthlyPension" value="16000" step="1000" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="pensionIndexationLabel">Roční indexace důchodu (%, průměr v ČR 4,9%)</label>
+                        <input type="number" id="pensionIndexationRate" value="4.9" step="0.1" min="0" max="20" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" id="endAgeLabel">Věk ukončení čerpání</label>
+                        <input type="number" id="endAge" value="90" step="1" min="0" max="120" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="pt-2">
+                        <button id="calculateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                            <span id="calculateBtnText">Spočítat</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="results" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-4" id="resultsTitle">Výsledky</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-indigo-50 p-6 rounded-lg">
+                    <h3 id="resultMainLabel" class="text-lg font-semibold text-indigo-700 mb-2">Potřebné úspory nyní</h3>
+                    <p id="requiredSavings" class="text-4xl font-bold text-indigo-900">8 356 570 Kč</p>
+                </div>
+                
+                <div class="bg-indigo-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-indigo-700 mb-2" id="withdrawalPeriodLabel">Celková doba čerpání</h3>
+                    <p id="withdrawalPeriod" class="text-4xl font-bold text-indigo-900">43 let</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-semibold text-indigo-700 mb-4" id="savingsEvolutionTitle">Vývoj úspor v čase</h3>
+                    <div class="h-80">
+                        <canvas id="savingsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-semibold text-indigo-700 mb-4" id="incomeExpensesTitle">Roční čerpání a zhodnocení</h3>
+                    <div class="h-80">
+                        <canvas id="cashflowChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
+                <h3 class="text-lg font-semibold text-indigo-700 mb-4" id="keyMilestonesTitle">Klíčové milníky</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="milestones">
+                    <!-- Milníky budou vloženy JavaScriptem -->
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 class="text-lg font-semibold text-indigo-700 mb-4" id="detailedOverviewTitle">Detailní přehled po letech</h3>
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="ageHeader">Věk</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="yearHeader">Rok</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="savingsHeader">Stav úspor (Kč)</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="withdrawalHeader">Roční čerpání (Kč)</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="returnsHeader">Zhodnocení (Kč)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTable"><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">52</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2025</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 466 097 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">420 000 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">529 527 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">53</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2026</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 567 999 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">434 280 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">536 182 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">54</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2027</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 661 280 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">449 046 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">542 326 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">55</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2028</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 744 860 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">464 313 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">547 893 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">56</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2029</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 817 573 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">480 100 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">552 813 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">57</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2030</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 878 158 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">496 423 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">557 008 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">58</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2031</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 925 254 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">513 301 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">560 398 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">59</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2032</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 957 393 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">530 754 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">562 892 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">60</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2033</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 972 988 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">548 799 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">564 395 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">61</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2034</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 970 331 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">567 459 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">564 802 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">62</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2035</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 947 581 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">586 752 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">564 002 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">63</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2036</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 902 754 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">606 702 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">561 875 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">64</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2037</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 833 716 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">627 330 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">558 291 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">65</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2038</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 738 167 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">648 659 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">553 110 Kč</td>
+                </tr><tr class="bg-indigo-50">
+                    <td class="py-2 px-4 border-b border-gray-200">66</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2039</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 949 999 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">344 938 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">556 770 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">67</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2040</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 152 055 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">367 742 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">569 798 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">68</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2041</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 342 899 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">391 322 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">582 166 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">69</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2042</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 520 973 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">415 703 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">593 778 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">70</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2043</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 684 593 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">440 914 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">604 534 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">71</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2044</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 831 934 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">466 981 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">614 322 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">72</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2045</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 961 022 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">493 935 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">623 023 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">73</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2046</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 069 725 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">521 805 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">630 508 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">74</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2047</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 155 739 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">550 623 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">636 637 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">75</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2048</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 216 579 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">580 420 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">641 259 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">76</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2049</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 249 561 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">611 231 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">644 213 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">77</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2050</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 251 793 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">643 089 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">645 321 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">78</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2051</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 220 158 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">676 030 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">644 396 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">79</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2052</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 151 299 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">710 092 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">641 232 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">80</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2053</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">10 041 599 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">745 311 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">635 612 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">81</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2054</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 887 169 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">781 728 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">627 298 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">82</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2055</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 683 822 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">819 383 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">616 036 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">83</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2056</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 427 056 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">858 319 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">601 553 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">84</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2057</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">9 112 034 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">898 578 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">583 555 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">85</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2058</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 733 553 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">940 206 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">561 726 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">86</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2059</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">8 286 030 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">983 249 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">535 725 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">87</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2060</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">7 763 464 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 027 756 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">505 190 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">88</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2061</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">7 159 415 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 073 776 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">469 727 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">89</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2062</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">6 466 973 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 121 361 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">428 918 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">90</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2063</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">5 678 719 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 170 563 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">382 310 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">91</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2064</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">4 786 700 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 221 439 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">329 420 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">92</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2065</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">3 782 386 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 274 044 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">269 729 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">93</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2066</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">2 656 629 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 328 438 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">202 681 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">94</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2067</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">1 399 626 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 384 681 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">127 679 Kč</td>
+                </tr><tr>
+                    <td class="py-2 px-4 border-b border-gray-200">95</td>
+                    <td class="py-2 px-4 border-b border-gray-200">2068</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ">873 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">1 442 837 Kč</td>
+                    <td class="py-2 px-4 border-b border-gray-200">44 084 Kč</td>
+                </tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Zvýraznění tlačítka při kliknutí
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('calculateBtn');
+            if (btn) {
+                // Desktop: myš
+                btn.addEventListener('mousedown', function() {
+                    btn.classList.add('active-calculate');
+                });
+                btn.addEventListener('mouseup', function() {
+                    btn.classList.remove('active-calculate');
+                });
+                btn.addEventListener('mouseleave', function() {
+                    btn.classList.remove('active-calculate');
+                });
+                // Mobil: dotyk
+                btn.addEventListener('touchstart', function() {
+                    btn.classList.add('active-calculate');
+                }, {passive:true});
+                btn.addEventListener('touchend', function() {
+                    btn.classList.remove('active-calculate');
+                });
+                btn.addEventListener('touchcancel', function() {
+                    btn.classList.remove('active-calculate');
+                });
+            }
+        });
+        // Výpočet maximálního možného měsíčního čerpání z daných úspor
+        function calculateMaxWithdrawal(
+            inflationRate,
+            returnRate,
+            currentAge,
+            retirementAge,
+            initialSavings,
+            monthlyPension,
+            pensionIndexationRate,
+            endAge,
+            usePercentWithdrawal = false,
+            annualWithdrawalPercent = 0
+        ) {
+            const currentYear = new Date().getFullYear();
+
+            // Pokud chceme čerpat procento z portfolia, nemusíme hledat "max měsíční" — simulujeme přímo
+            if (usePercentWithdrawal) {
+                const sim = simulateSavings(
+                    initialSavings,
+                    inflationRate,
+                    returnRate,
+                    currentAge,
+                    retirementAge,
+                    0,
+                    monthlyPension,
+                    pensionIndexationRate,
+                    endAge,
+                    currentYear,
+                    true,
+                    annualWithdrawalPercent
+                );
+                return {
+                    requiredSavings: initialSavings,
+                    maxMonthlyWithdrawal: sim.yearlyData.length > 0 ? sim.yearlyData[0].withdrawal / 12 : 0,
+                    yearlyData: sim.yearlyData
+                };
+            }
+
+            // Binární vyhledávání pro nalezení maximálního měsíčního čerpání
+            let low = 0;
+            let high = 1000000; // 1 milion měsíčně jako horní hranice
+            let maxMonthlyWithdrawal = 0;
+            let yearlyData = [];
+            while (high - low > 1) {
+                const mid = (low + high) / 2;
+                const result = simulateSavings(
+                    initialSavings,
+                    inflationRate,
+                    returnRate,
+                    currentAge,
+                    retirementAge,
+                    mid,
+                    monthlyPension,
+                    pensionIndexationRate,
+                    endAge,
+                    currentYear,
+                    false,
+                    0
+                );
+                if (result.finalSavings >= 0) {
+                    low = mid;
+                    maxMonthlyWithdrawal = mid;
+                    yearlyData = result.yearlyData;
+                } else {
+                    high = mid;
+                }
+            }
+            // Provedeme ještě jednu simulaci s finálním výsledkem pro přesná data
+            const finalResult = simulateSavings(
+                initialSavings,
+                inflationRate,
+                returnRate,
+                currentAge,
+                retirementAge,
+                maxMonthlyWithdrawal,
+                monthlyPension,
+                pensionIndexationRate,
+                endAge,
+                currentYear,
+                false,
+                0
+            );
+            return {
+                requiredSavings: initialSavings,
+                maxMonthlyWithdrawal,
+                yearlyData: finalResult.yearlyData
+            };
+        }
+        // Přepínání režimu výpočtu
+        document.getElementById('modeSavings').addEventListener('change', updateInputMode);
+        document.getElementById('modeWithdrawal').addEventListener('change', updateInputMode);
+        function updateInputMode() {
+            const isSavings = document.getElementById('modeSavings').checked;
+            document.getElementById('inputMonthlyWithdrawal').style.display = isSavings ? '' : 'none';
+            document.getElementById('inputInitialSavings').style.display = isSavings ? 'none' : '';
+            updateWithdrawalInputs(); // zohlední checkbox pro % čerpání
+            // Změna popisku výsledku podle režimu
+            updateResultLabel();
+            // Po přepnutí režimu automaticky spustit výpočet
+            calculate();
+        }
+
+        // Aktualizuje zobrazení polí pro čerpání podle checkboxu pro procenta
+        function updateWithdrawalInputs() {
+            const usePercent = document.getElementById('usePercentWithdrawal') && document.getElementById('usePercentWithdrawal').checked;
+            const isSavings = document.getElementById('modeSavings').checked;
+            // Zobrazit pole pro měsíční čerpání pouze pokud jsme v režimu "savings" a není zapnutý režim procent
+            document.getElementById('inputMonthlyWithdrawal').style.display = (isSavings && !usePercent) ? '' : 'none';
+            // Povolit/zakázat pole pro procentuální čerpání
+            const percentInput = document.getElementById('annualWithdrawalPercent');
+            const percentLabel = document.getElementById('annualWithdrawalPercentLabel');
+            if (percentInput) {
+                percentInput.disabled = !usePercent;
+                // sjednocené vizuální zobrazení pro disabled state
+                if (!usePercent) {
+                    percentInput.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    percentInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+            if (percentLabel) {
+                if (!usePercent) percentLabel.classList.add('text-gray-400'); else percentLabel.classList.remove('text-gray-400');
+            }
+
+            // Zakázat / povolit editaci míry indexace čerpání opačně k % čerpání
+            const inflationInput = document.getElementById('inflationRate');
+            const inflationLabel = document.getElementById('inflationRateLabel');
+            if (inflationInput) {
+                inflationInput.disabled = usePercent;
+                // sjednocené vizuální zobrazení pro disabled state
+                if (usePercent) {
+                    inflationInput.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    inflationInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+            if (inflationLabel) {
+                if (usePercent) inflationLabel.classList.add('text-gray-400'); else inflationLabel.classList.remove('text-gray-400');
+            }
+        }
+        updateInputMode();
+
+        document.getElementById('calculateBtn').addEventListener('click', calculate);
+        
+        // Checkbox + procento: reagují okamžitě (přepnutí polí + přepočet)
+        const usePercentCheckbox = document.getElementById('usePercentWithdrawal');
+        if (usePercentCheckbox) {
+            usePercentCheckbox.addEventListener('change', function() {
+                updateWithdrawalInputs();
+                calculate();
+            });
+        }
+        const annualPercentInput = document.getElementById('annualWithdrawalPercent');
+        if (annualPercentInput) {
+            annualPercentInput.addEventListener('input', function() {
+                if (usePercentCheckbox && usePercentCheckbox.checked) calculate();
+            });
+        }
+
+        function calculate() {
+            const isSavings = document.getElementById('modeSavings').checked;
+            const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
+            const returnRate = parseFloat(document.getElementById('returnRate').value) / 100;
+            const currentAge = parseInt(document.getElementById('currentAge').value);
+            const retirementAge = parseInt(document.getElementById('retirementAge').value);
+            const monthlyPension = parseFloat(document.getElementById('monthlyPension').value);
+            const pensionIndexationRate = parseFloat(document.getElementById('pensionIndexationRate').value) / 100;
+            const endAge = parseInt(document.getElementById('endAge').value);
+            const usePercent = document.getElementById('usePercentWithdrawal').checked;
+            const annualWithdrawalPercent = parseFloat(document.getElementById('annualWithdrawalPercent').value) / 100 || 0;
+
+            let result;
+            if (isSavings) {
+                if (usePercent) {
+                    // Hledáme potřebné počáteční úspory pro dané % čerpání
+                    result = calculateRequiredSavings(
+                        inflationRate,
+                        returnRate,
+                        currentAge,
+                        retirementAge,
+                        0, // nepracuju s pevnou měsíční částkou
+                        monthlyPension,
+                        pensionIndexationRate,
+                        endAge,
+                        true,
+                        annualWithdrawalPercent
+                    );
+                    document.getElementById('requiredSavings').textContent = formatCurrency(result.requiredSavings);
+                } else {
+                    const monthlyWithdrawalBeforeRetirement = parseFloat(document.getElementById('monthlyWithdrawalBeforeRetirement').value);
+                    result = calculateRequiredSavings(
+                        inflationRate,
+                        returnRate,
+                        currentAge,
+                        retirementAge,
+                        monthlyWithdrawalBeforeRetirement,
+                        monthlyPension,
+                        pensionIndexationRate,
+                        endAge,
+                        false,
+                        0
+                    );
+                    document.getElementById('requiredSavings').textContent = formatCurrency(result.requiredSavings);
+                }
+
+                document.getElementById('withdrawalPeriod').textContent = `${endAge - currentAge} ${t('years')}`;
+            } else {
+                const initialSavings = parseFloat(document.getElementById('initialSavings').value);
+
+                if (usePercent) {
+                    const sim = simulateSavings(
+                        initialSavings,
+                        inflationRate,
+                        returnRate,
+                        currentAge,
+                        retirementAge,
+                        0,
+                        monthlyPension,
+                        pensionIndexationRate,
+                        endAge,
+                        new Date().getFullYear(),
+                        true,
+                        annualWithdrawalPercent
+                    );
+                    result = {
+                        maxMonthlyWithdrawal: sim.yearlyData.length > 0 ? sim.yearlyData[0].withdrawal / 12 : 0,
+                        yearlyData: sim.yearlyData
+                    };
+                } else {
+                    result = calculateMaxWithdrawal(
+                        inflationRate,
+                        returnRate,
+                        currentAge,
+                        retirementAge,
+                        initialSavings,
+                        monthlyPension,
+                        pensionIndexationRate,
+                        endAge
+                    );
+                }
+
+                document.getElementById('requiredSavings').textContent = formatCurrency(result.maxMonthlyWithdrawal);
+                document.getElementById('withdrawalPeriod').textContent = `${endAge - currentAge} ${t('years')}`;
+            }
+
+            // Vyplnění tabulky
+            const tableBody = document.getElementById('resultsTable');
+            tableBody.innerHTML = '';
+            result.yearlyData.forEach(yearData => {
+                const row = document.createElement('tr');
+                if (yearData.age === retirementAge) {
+                    row.classList.add('bg-indigo-50');
+                }
+                row.innerHTML = `
+                    <td class="py-2 px-4 border-b border-gray-200">${yearData.age}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${yearData.year}</td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-medium ${yearData.savings < 0 ? 'text-red-600' : ''}">${formatCurrency(yearData.savings)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatCurrency(yearData.withdrawal)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatCurrency(yearData.returns)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            setTimeout(() => {
+                createCharts(result.yearlyData, retirementAge);
+                // Uložit data pro přepínání jazyků
+                window.lastYearlyData = result.yearlyData;
+                window.lastRetirementAge = retirementAge;
+            }, 50);
+
+            displayMilestones(result.yearlyData, currentAge, retirementAge, endAge);
+        }
+        
+        function calculateRequiredSavings(
+            inflationRate,
+            returnRate,
+            currentAge,
+            retirementAge,
+            monthlyWithdrawalBeforeRetirement,
+            monthlyPension,
+            pensionIndexationRate,
+            endAge,
+            usePercentWithdrawal = false,
+            annualWithdrawalPercent = 0
+        ) {
+            const currentYear = new Date().getFullYear();
+            
+            // Binární vyhledávání pro nalezení potřebných úspor
+            let low = 0;
+            let high = 100000000; // 100 milionů jako horní hranice
+            let requiredSavings = 0;
+            let yearlyData = [];
+            
+            while (high - low > 100) { // Přesnější výpočet
+                const mid = Math.floor((low + high) / 2);
+                const result = simulateSavings(
+                    mid,
+                    inflationRate,
+                    returnRate,
+                    currentAge,
+                    retirementAge,
+                    monthlyWithdrawalBeforeRetirement,
+                    monthlyPension,
+                    pensionIndexationRate,
+                    endAge,
+                    currentYear,
+                    usePercentWithdrawal,
+                    annualWithdrawalPercent
+                );
+                
+                if (result.finalSavings >= 0) {
+                    high = mid;
+                    requiredSavings = mid;
+                    yearlyData = result.yearlyData;
+                } else {
+                    low = mid;
+                }
+            }
+            
+            // Provedeme ještě jednu simulaci s finálním výsledkem pro přesná data
+            const finalResult = simulateSavings(
+                requiredSavings,
+                inflationRate,
+                returnRate,
+                currentAge,
+                retirementAge,
+                monthlyWithdrawalBeforeRetirement,
+                monthlyPension,
+                pensionIndexationRate,
+                endAge,
+                currentYear,
+                usePercentWithdrawal,
+                annualWithdrawalPercent
+            );
+            
+            return {
+                requiredSavings,
+                yearlyData: finalResult.yearlyData
+            };
+        }
+        
+        function simulateSavings(
+            initialSavings,
+            inflationRate,
+            returnRate,
+            currentAge,
+            retirementAge,
+            monthlyWithdrawalBeforeRetirement,
+            monthlyPension,
+            pensionIndexationRate,
+            endAge,
+            currentYear,
+            usePercentWithdrawal = false,
+            annualWithdrawalPercent = 0
+        ) {
+            let currentSavingsEndOfYear = initialSavings; 
+            const yearlyData = [];
+            
+            for (let age = currentAge; age <= endAge; age++) {
+                const year = currentYear + (age - currentAge);
+                const isRetired = age >= retirementAge;
+
+                const savingsAtStartOfYear = currentSavingsEndOfYear; // Stav na začátku aktuálního roku
+
+                // Výpočet ročního čerpání s inflací (W) nebo procentuální čerpání z portfolia
+                let annualWithdrawal;
+                if (usePercentWithdrawal) {
+                    // Každý rok vybereme fixní procento z hodnoty portfolia na začátku roku
+                    annualWithdrawal = Math.max(0, savingsAtStartOfYear * annualWithdrawalPercent);
+                } else {
+                    if (isRetired) {
+                        const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement * 
+                            Math.pow(1 + inflationRate, age - currentAge);
+                        const indexedPension = monthlyPension * 
+                            Math.pow(1 + pensionIndexationRate, age - currentAge);
+                        annualWithdrawal = Math.max(0, (inflationAdjustedWithdrawal - indexedPension) * 12);
+                    } else {
+                        const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement * 
+                            Math.pow(1 + inflationRate, age - currentAge);
+                        annualWithdrawal = inflationAdjustedWithdrawal * 12;
+                    }
+                }
+                
+                // Model: Výběry na začátku období (SOP)
+                // savingsAtStartOfYear je S_0 (stav úspor na začátku aktuálního roku)
+                
+                // 1. Odečtení ročního čerpání
+                let principal_after_withdrawal = savingsAtStartOfYear - annualWithdrawal;
+                
+                // 2. Výpočet ročního zhodnocení na základě jistiny po čerpání
+                const annualReturns = principal_after_withdrawal * returnRate;
+                
+                // 3. Konečný stav úspor na konci roku
+                currentSavingsEndOfYear = principal_after_withdrawal + annualReturns; 
+                
+                // Uložení dat pro tento rok
+                yearlyData.push({
+                    age,
+                    year,
+                    savings: savingsAtStartOfYear, // Stav na začátku roku pro zobrazení v tabulce
+                    withdrawal: annualWithdrawal,
+                    returns: annualReturns, 
+                    originalSavings: currentSavingsEndOfYear // Skutečný stav na konci roku pro logiku a milníky
+                });
+                
+                // Pokud úspory klesnou pod nulu (reálně), simulace končí
+                if (currentSavingsEndOfYear < 0 && yearlyData[yearlyData.length-1].originalSavings <0) {
+                    break; 
+                }
+            }
+            
+            return {
+                finalSavings: currentSavingsEndOfYear, // Vracíme konečný stav po poslední iteraci
+                yearlyData
+            };
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('cs-CZ', {
+                style: 'currency',
+                currency: 'CZK',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(Math.round(amount));
+        }
+        
+        function createCharts(yearlyData, retirementAge) {
+            // Graf vývoje úspor
+            createSavingsChart(yearlyData, retirementAge);
+            
+            // Graf příjmů a výdajů
+            createCashflowChart(yearlyData, retirementAge);
+        }
+        
+        function createSavingsChart(yearlyData, retirementAge) {
+            // Ujistíme se, že Canvas existuje
+            const canvas = document.getElementById('savingsChart');
+            if (!canvas) return;
+            
+            // Zničení existujícího grafu, pokud existuje
+            if (window.savingsChart instanceof Chart) {
+                window.savingsChart.destroy();
+            }
+            
+            // Data pro graf
+            const labels = yearlyData.map(data => data.age);
+            const savingsData = yearlyData.map(data => data.savings);
+            
+            // Vytvoření nového grafu
+            const ctx = canvas.getContext('2d');
+            window.savingsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: t('savingsChart'),
+                        data: savingsData,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    xMin: retirementAge,
+                                    xMax: retirementAge,
+                                    borderColor: 'rgba(255, 99, 132, 0.7)',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: `${t('retirementAnnotation')} (${retirementAge} ${t('years')})`,
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('cs-CZ', {
+                                        style: 'currency',
+                                        currency: 'CZK',
+                                        notation: 'compact',
+                                        compactDisplay: 'short',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    }).format(value);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Věk'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createCashflowChart(yearlyData, retirementAge) {
+            // Ujistíme se, že Canvas existuje
+            const canvas = document.getElementById('cashflowChart');
+            if (!canvas) return;
+            
+            // Zničení existujícího grafu, pokud existuje
+            if (window.cashflowChart instanceof Chart) {
+                window.cashflowChart.destroy();
+            }
+            
+            // Data pro graf
+            const labels = yearlyData.map(data => data.age);
+            const withdrawalData = yearlyData.map(data => data.withdrawal);
+            const returnsData = yearlyData.map(data => data.returns);
+            
+            // Vytvoření nového grafu
+            const ctx = canvas.getContext('2d');
+            window.cashflowChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: t('withdrawalChart'),
+                            data: withdrawalData,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: t('returnsChart'),
+                            data: returnsData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('cs-CZ', {
+                                        style: 'currency',
+                                        currency: 'CZK',
+                                        notation: 'compact',
+                                        compactDisplay: 'short',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    }).format(value);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Věk'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function displayMilestones(yearlyData, currentAge, retirementAge, endAge) {
+            const milestonesContainer = document.getElementById('milestones');
+            milestonesContainer.innerHTML = '';
+            
+            // Milník 1: Počáteční úspory
+            const initialSavingsValue = yearlyData[0].savings; 
+            addMilestone(
+                milestonesContainer,
+                t('initialSavingsText'),
+                formatCurrency(initialSavingsValue),
+                t('ageHeader') + ': ' + currentAge,
+                'bg-blue-100 border-blue-300'
+            );
+            
+            // Milník 2: Odchod do důchodu
+            const retirementIndex = yearlyData.findIndex(data => data.age === retirementAge);
+            if (retirementIndex !== -1) {
+                const retirementSavings = yearlyData[retirementIndex].savings; 
+                addMilestone(
+                    milestonesContainer,
+                    t('retirementSavingsText'),
+                    formatCurrency(retirementSavings),
+                    t('ageHeader') + ': ' + retirementAge,
+                    'bg-indigo-100 border-indigo-300'
+                );
+            }
+            
+            // Milník 3: Kdy dojdou peníze nebo konec simulace
+            const lastIndex = yearlyData.length - 1;
+            const lastEntry = yearlyData[lastIndex];
+            
+            if (lastEntry.originalSavings < 0) {
+                addMilestone(
+                    milestonesContainer,
+                    t('savingsDepletedText'),
+                    t('ageHeader') + ': ' + lastEntry.age,
+                    t('yearHeader') + ': ' + lastEntry.year,
+                    'bg-red-100 border-red-300'
+                );
+            } else {
+                addMilestone(
+                    milestonesContainer,
+                    t('finalSavingsText'),
+                    formatCurrency(Math.max(0, lastEntry.originalSavings)),
+                    t('ageHeader') + ': ' + lastEntry.age,
+                    'bg-green-100 border-green-300'
+                );
+            }
+        }
+        
+        function addMilestone(container, title, value, subtitle, colorClass) {
+            const milestone = document.createElement('div');
+            milestone.className = `p-4 rounded-lg border ${colorClass}`;
+            milestone.innerHTML = `
+                <h4 class="font-medium text-gray-800">${title}</h4>
+                <p class="text-xl font-bold mt-1">${value}</p>
+                <p class="text-sm text-gray-600 mt-1">${subtitle}</p>
+            `;
+            container.appendChild(milestone);
+        }
+        
+        // Spustit výpočet při načtení stránky
+        window.addEventListener('DOMContentLoaded', function() {
+            updateLanguageButtons();
+            updateTexts();
+            setTimeout(calculate, 100);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94452fb192c8f99e',t:'MTc0ODAwOTk0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe>
+</body></html>
