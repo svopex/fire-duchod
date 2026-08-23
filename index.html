@@ -29,8 +29,6 @@
                 initialSavingsLabel: "Výše úspor nyní (Kč)",
                 monthlyPensionLabel: "Měsíční důchod (Kč, aktuální hodnota)",
                 pensionIndexationLabel: "Roční indexace důchodu (%, průměr v ČR 2000-2024 4,9%)",
-                usePercentWithdrawalLabel: "Čerpat stejné % z portfolia každý rok",
-                annualWithdrawalPercentLabel: "Roční čerpání z portfolia (%)",
                 endAgeLabel: "Věk ukončení čerpání",
                 calculateBtnText: "Spočítat",
                 resultsTitle: "Výsledky",
@@ -72,8 +70,6 @@
                 initialSavingsLabel: "Current savings amount (CZK)",
                 monthlyPensionLabel: "Monthly pension (CZK, current value)",
                 pensionIndexationLabel: "Annual pension indexation (%, average in CZ 2000-2024 4.9%)",
-                usePercentWithdrawalLabel: "Withdraw same % of portfolio each year",
-                annualWithdrawalPercentLabel: "Annual withdrawal (% of portfolio)",
                 endAgeLabel: "End of withdrawal age",
                 calculateBtnText: "Calculate",
                 resultsTitle: "Results",
@@ -162,8 +158,6 @@
             document.getElementById('currentAgeLabel').textContent = t('currentAgeLabel');
             document.getElementById('retirementAgeLabel').textContent = t('retirementAgeLabel');
             document.getElementById('monthlyWithdrawalLabel').textContent = t('monthlyWithdrawalLabel');
-            document.getElementById('usePercentWithdrawalLabel').textContent = t('usePercentWithdrawalLabel');
-            document.getElementById('annualWithdrawalPercentLabel').textContent = t('annualWithdrawalPercentLabel');
             document.getElementById('initialSavingsLabel').textContent = t('initialSavingsLabel');
             document.getElementById('monthlyPensionLabel').textContent = t('monthlyPensionLabel');
             document.getElementById('pensionIndexationLabel').textContent = t('pensionIndexationLabel');
@@ -262,18 +256,6 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1" id="retirementAgeLabel">Věk odchodu do důchodu</label>
                         <input type="number" id="retirementAge" value="65" step="1" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Čerpat % z portfolia + procento -->
-                    <div class="mt-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" id="usePercentWithdrawal" class="form-checkbox text-indigo-600">
-                            <span class="ml-2" id="usePercentWithdrawalLabel">Čerpat % z portfolia každý rok</span>
-                        </label>
-                        <div class="mt-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1" id="annualWithdrawalPercentLabel">Roční čerpání z portfolia (%)</label>
-                            <input type="number" id="annualWithdrawalPercent" value="4.7" step="0.1" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
                     </div>
 
                     <div>
@@ -669,34 +651,9 @@
             initialSavings,
             monthlyPension,
             pensionIndexationRate,
-            endAge,
-            usePercentWithdrawal = false,
-            annualWithdrawalPercent = 0
+            endAge
         ) {
             const currentYear = new Date().getFullYear();
-
-            // Pokud chceme čerpat procento z portfolia, nemusíme hledat "max měsíční" — simulujeme přímo
-            if (usePercentWithdrawal) {
-                const sim = simulateSavings(
-                    initialSavings,
-                    inflationRate,
-                    returnRate,
-                    currentAge,
-                    retirementAge,
-                    0,
-                    monthlyPension,
-                    pensionIndexationRate,
-                    endAge,
-                    currentYear,
-                    true,
-                    annualWithdrawalPercent
-                );
-                return {
-                    requiredSavings: initialSavings,
-                    maxMonthlyWithdrawal: sim.yearlyData.length > 0 ? sim.yearlyData[0].withdrawal / 12 : 0,
-                    yearlyData: sim.yearlyData
-                };
-            }
 
             // Binární vyhledávání pro nalezení maximálního měsíčního čerpání
             let low = 0;
@@ -715,9 +672,7 @@
                     monthlyPension,
                     pensionIndexationRate,
                     endAge,
-                    currentYear,
-                    false,
-                    0
+                    currentYear
                 );
                 if (result.finalSavings >= 0) {
                     low = mid;
@@ -738,9 +693,7 @@
                 monthlyPension,
                 pensionIndexationRate,
                 endAge,
-                currentYear,
-                false,
-                0
+                currentYear
             );
             return {
                 requiredSavings: initialSavings,
@@ -755,69 +708,15 @@
             const isSavings = document.getElementById('modeSavings').checked;
             document.getElementById('inputMonthlyWithdrawal').style.display = isSavings ? '' : 'none';
             document.getElementById('inputInitialSavings').style.display = isSavings ? 'none' : '';
-            updateWithdrawalInputs(); // zohlední checkbox pro % čerpání
             // Změna popisku výsledku podle režimu
             updateResultLabel();
             // Po přepnutí režimu automaticky spustit výpočet
             calculate();
         }
 
-        // Aktualizuje zobrazení polí pro čerpání podle checkboxu pro procenta
-        function updateWithdrawalInputs() {
-            const usePercent = document.getElementById('usePercentWithdrawal') && document.getElementById('usePercentWithdrawal').checked;
-            const isSavings = document.getElementById('modeSavings').checked;
-            // Zobrazit pole pro měsíční čerpání pouze pokud jsme v režimu "savings" a není zapnutý režim procent
-            document.getElementById('inputMonthlyWithdrawal').style.display = (isSavings && !usePercent) ? '' : 'none';
-            // Povolit/zakázat pole pro procentuální čerpání
-            const percentInput = document.getElementById('annualWithdrawalPercent');
-            const percentLabel = document.getElementById('annualWithdrawalPercentLabel');
-            if (percentInput) {
-                percentInput.disabled = !usePercent;
-                // sjednocené vizuální zobrazení pro disabled state
-                if (!usePercent) {
-                    percentInput.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    percentInput.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            }
-            if (percentLabel) {
-                if (!usePercent) percentLabel.classList.add('text-gray-400'); else percentLabel.classList.remove('text-gray-400');
-            }
-
-            // Zakázat / povolit editaci míry indexace čerpání opačně k % čerpání
-            const inflationInput = document.getElementById('inflationRate');
-            const inflationLabel = document.getElementById('inflationRateLabel');
-            if (inflationInput) {
-                inflationInput.disabled = usePercent;
-                // sjednocené vizuální zobrazení pro disabled state
-                if (usePercent) {
-                    inflationInput.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    inflationInput.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            }
-            if (inflationLabel) {
-                if (usePercent) inflationLabel.classList.add('text-gray-400'); else inflationLabel.classList.remove('text-gray-400');
-            }
-        }
         updateInputMode();
 
         document.getElementById('calculateBtn').addEventListener('click', calculate);
-        
-        // Checkbox + procento: reagují okamžitě (přepnutí polí + přepočet)
-        const usePercentCheckbox = document.getElementById('usePercentWithdrawal');
-        if (usePercentCheckbox) {
-            usePercentCheckbox.addEventListener('change', function() {
-                updateWithdrawalInputs();
-                calculate();
-            });
-        }
-        const annualPercentInput = document.getElementById('annualWithdrawalPercent');
-        if (annualPercentInput) {
-            annualPercentInput.addEventListener('input', function() {
-                if (usePercentCheckbox && usePercentCheckbox.checked) calculate();
-            });
-        }
 
         function calculate() {
             const isSavings = document.getElementById('modeSavings').checked;
@@ -828,78 +727,36 @@
             const monthlyPension = parseFloat(document.getElementById('monthlyPension').value);
             const pensionIndexationRate = parseFloat(document.getElementById('pensionIndexationRate').value) / 100;
             const endAge = parseInt(document.getElementById('endAge').value);
-            const usePercent = document.getElementById('usePercentWithdrawal').checked;
-            const annualWithdrawalPercent = parseFloat(document.getElementById('annualWithdrawalPercent').value) / 100 || 0;
 
             let result;
             if (isSavings) {
-                if (usePercent) {
-                    // Hledáme potřebné počáteční úspory pro dané % čerpání
-                    result = calculateRequiredSavings(
-                        inflationRate,
-                        returnRate,
-                        currentAge,
-                        retirementAge,
-                        0, // nepracuju s pevnou měsíční částkou
-                        monthlyPension,
-                        pensionIndexationRate,
-                        endAge,
-                        true,
-                        annualWithdrawalPercent
-                    );
-                    document.getElementById('requiredSavings').textContent = formatCurrency(result.requiredSavings);
-                } else {
-                    const monthlyWithdrawalBeforeRetirement = parseFloat(document.getElementById('monthlyWithdrawalBeforeRetirement').value);
-                    result = calculateRequiredSavings(
-                        inflationRate,
-                        returnRate,
-                        currentAge,
-                        retirementAge,
-                        monthlyWithdrawalBeforeRetirement,
-                        monthlyPension,
-                        pensionIndexationRate,
-                        endAge,
-                        false,
-                        0
-                    );
-                    document.getElementById('requiredSavings').textContent = formatCurrency(result.requiredSavings);
-                }
+                const monthlyWithdrawalBeforeRetirement = parseFloat(document.getElementById('monthlyWithdrawalBeforeRetirement').value);
+                result = calculateRequiredSavings(
+                    inflationRate,
+                    returnRate,
+                    currentAge,
+                    retirementAge,
+                    monthlyWithdrawalBeforeRetirement,
+                    monthlyPension,
+                    pensionIndexationRate,
+                    endAge
+                );
+                document.getElementById('requiredSavings').textContent = formatCurrency(result.requiredSavings);
 
                 document.getElementById('withdrawalPeriod').textContent = `${endAge - currentAge} ${t('years')}`;
             } else {
                 const initialSavings = parseFloat(document.getElementById('initialSavings').value);
 
-                if (usePercent) {
-                    const sim = simulateSavings(
-                        initialSavings,
-                        inflationRate,
-                        returnRate,
-                        currentAge,
-                        retirementAge,
-                        0,
-                        monthlyPension,
-                        pensionIndexationRate,
-                        endAge,
-                        new Date().getFullYear(),
-                        true,
-                        annualWithdrawalPercent
-                    );
-                    result = {
-                        maxMonthlyWithdrawal: sim.yearlyData.length > 0 ? sim.yearlyData[0].withdrawal / 12 : 0,
-                        yearlyData: sim.yearlyData
-                    };
-                } else {
-                    result = calculateMaxWithdrawal(
-                        inflationRate,
-                        returnRate,
-                        currentAge,
-                        retirementAge,
-                        initialSavings,
-                        monthlyPension,
-                        pensionIndexationRate,
-                        endAge
-                    );
-                }
+                result = calculateMaxWithdrawal(
+                    inflationRate,
+                    returnRate,
+                    currentAge,
+                    retirementAge,
+                    initialSavings,
+                    monthlyPension,
+                    pensionIndexationRate,
+                    endAge
+                );
 
                 document.getElementById('requiredSavings').textContent = formatCurrency(result.maxMonthlyWithdrawal);
                 document.getElementById('withdrawalPeriod').textContent = `${endAge - currentAge} ${t('years')}`;
@@ -941,9 +798,7 @@
             monthlyWithdrawalBeforeRetirement,
             monthlyPension,
             pensionIndexationRate,
-            endAge,
-            usePercentWithdrawal = false,
-            annualWithdrawalPercent = 0
+            endAge
         ) {
             const currentYear = new Date().getFullYear();
             
@@ -965,9 +820,7 @@
                     monthlyPension,
                     pensionIndexationRate,
                     endAge,
-                    currentYear,
-                    usePercentWithdrawal,
-                    annualWithdrawalPercent
+                    currentYear
                 );
                 
                 if (result.finalSavings >= 0) {
@@ -990,9 +843,7 @@
                 monthlyPension,
                 pensionIndexationRate,
                 endAge,
-                currentYear,
-                usePercentWithdrawal,
-                annualWithdrawalPercent
+                currentYear
             );
             
             return {
@@ -1011,9 +862,7 @@
             monthlyPension,
             pensionIndexationRate,
             endAge,
-            currentYear,
-            usePercentWithdrawal = false,
-            annualWithdrawalPercent = 0
+            currentYear
         ) {
             let currentSavingsEndOfYear = initialSavings; 
             const yearlyData = [];
@@ -1024,23 +873,19 @@
 
                 const savingsAtStartOfYear = currentSavingsEndOfYear; // Stav na začátku aktuálního roku
 
-                // Výpočet ročního čerpání s inflací (W) nebo procentuální čerpání z portfolia
+                // Výpočet ročního čerpání s inflací (W)
                 let annualWithdrawal;
-                if (usePercentWithdrawal) {
-                    // Každý rok vybereme fixní procento z hodnoty portfolia na začátku roku
-                    annualWithdrawal = Math.max(0, savingsAtStartOfYear * annualWithdrawalPercent);
+                if (isRetired) {
+                    // V důchodu se potřebné čerpání snižuje o indexovaný státní důchod
+                    const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement *
+                        Math.pow(1 + inflationRate, age - currentAge);
+                    const indexedPension = monthlyPension *
+                        Math.pow(1 + pensionIndexationRate, age - currentAge);
+                    annualWithdrawal = Math.max(0, (inflationAdjustedWithdrawal - indexedPension) * 12);
                 } else {
-                    if (isRetired) {
-                        const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement * 
-                            Math.pow(1 + inflationRate, age - currentAge);
-                        const indexedPension = monthlyPension * 
-                            Math.pow(1 + pensionIndexationRate, age - currentAge);
-                        annualWithdrawal = Math.max(0, (inflationAdjustedWithdrawal - indexedPension) * 12);
-                    } else {
-                        const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement * 
-                            Math.pow(1 + inflationRate, age - currentAge);
-                        annualWithdrawal = inflationAdjustedWithdrawal * 12;
-                    }
+                    const inflationAdjustedWithdrawal = monthlyWithdrawalBeforeRetirement *
+                        Math.pow(1 + inflationRate, age - currentAge);
+                    annualWithdrawal = inflationAdjustedWithdrawal * 12;
                 }
                 
                 // Model: Výběry na začátku období (SOP)
